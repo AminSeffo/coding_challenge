@@ -22,6 +22,9 @@ def predict_sentiment(input: TextInput):
     inputs = tokenizer(input.text, return_tensors="pt", truncation=True, padding=True)
     outputs = model(**inputs)
     logits = outputs.logits.detach().numpy()
+
+    probabilities = torch.nn.functional.softmax(torch.tensor(logits[0]), dim=-1).numpy()
+
     
     # Ensure the model outputs four logits for four categories
     if logits.shape[1] != 4:
@@ -33,9 +36,9 @@ def predict_sentiment(input: TextInput):
     # Get predicted label and score
     pred_index = np.argmax(logits[0])
     label = labels[pred_index]
-    score = float(logits[0][pred_index])
+    score = float(probabilities[pred_index])
     
-    return {"label": label, "score": score}
+    return {"label": label, "probability": score}
 
 @app.get("/")
 def home():
